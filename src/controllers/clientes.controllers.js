@@ -11,7 +11,6 @@ export const getClientes=async(req, res)=>{
             message:"Error en el servidor"
         })
     }
-   
 };
 export const getCliente=async(req, res)=>{
     try {
