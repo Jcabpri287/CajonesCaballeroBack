@@ -5,6 +5,7 @@ import {getProductos} from '../controllers/productos.controllers.js';
 import {validacion } from '../validators/cajaCaballero.validator.js';
 import { getMarca, getMarcas } from '../controllers/marcas.controllers.js';
 import { addComentario, getComentarios, getComentariosProducto } from '../controllers/comentarios.controllers.js';
+import { pago } from '../controllers/pedidos.controllers.js';
 
 const router=Router();
 
@@ -43,5 +44,10 @@ router.get("/marcas/:id", getMarca)
 router.get("/comentarios", getComentarios)
 router.get("/comentarios/:id", getComentariosProducto)
 router.post("/comentarios", addComentario)
+
+/**
+ * Endpoints para los pedidos
+ */
+router.post("/crear-sesion-pago", pago)
 
 export default router; //exportamos
