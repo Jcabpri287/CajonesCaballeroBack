@@ -35,37 +35,41 @@ export const addPedido = async (req, res) => {
   }
 };
 
-export const pago= async (req, res) => {
-    const { nombre, descripcion, precio } = req.body.producto;
+export const pago = async (req, res) => {
+  const { nombre, descripcion, precio } = req.body.producto;
 
-    console.log(nombre);
-    console.log(descripcion);
-    console.log(precio);
-    try {
-      // Crear la sesión de pago en Stripe
-      const session = await stripeInstance.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [{
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: nombre,
-              description: descripcion
-            },
-            unit_amount: (precio.toFixed(2) * 100).toFixed(0),
+  console.log(nombre);
+  console.log(descripcion);
+  console.log(precio);
+
+  try {
+    // Asegúrate de convertir el precio a centavos correctamente
+    const unitAmount = Math.round(precio * 100);
+
+    // Crear la sesión de pago en Stripe
+    const session = await stripeInstance.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: nombre,
+            description: descripcion,
           },
-          quantity: 1,
-        }],
-        mode: 'payment',
-        success_url: 'http://localhost:4200/exito?resultado=exito',
-        cancel_url: 'http://localhost:4200/cancelacion?resultado=cancelado',
-      });
-  
-      res.json({ sessionId: session.id });
-    } catch (error) {
-      console.error('Error al crear sesión de pago:', error);
-      res.status(500).json({ error: 'Error al procesar el pago' });
-    }
+          unit_amount: unitAmount,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: 'https://cajonescaballero.netlify.app/exito?resultado=exito',
+      cancel_url: 'https://cajonescaballero.netlify.app/cancelacion?resultado=cancelado',
+    });
+
+    res.json({ sessionId: session.id });
+  } catch (error) {
+    console.error('Error al crear sesión de pago:', error);
+    res.status(500).json({ error: 'Error al procesar el pago' });
+  }
 }
 
 export const getPedidosUsuario= async (req, res) => {
