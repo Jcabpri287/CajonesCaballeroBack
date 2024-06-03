@@ -1,11 +1,11 @@
 "use strict"
 import {Router} from 'express'
-import {getUsuario, getUsuarios,correosUsuarios, delUsuario, verifyAccount, addUsuario, loginUsuario, updateUsuario, getUsuarioConGmail} from '../controllers/usuarios.controllers.js';
+import {getUsuario, getUsuarios,correosUsuarios, delUsuario, verifyAccount, addUsuario, loginUsuario, updateUsuario, getUsuarioConGmail, confirmarPedido} from '../controllers/usuarios.controllers.js';
 import {getProductos} from '../controllers/productos.controllers.js';
 import {validacion } from '../validators/cajaCaballero.validator.js';
 import { getMarca, getMarcas } from '../controllers/marcas.controllers.js';
 import { addComentario, getComentarios, getComentariosProducto } from '../controllers/comentarios.controllers.js';
-import { pago } from '../controllers/pedidos.controllers.js';
+import { addPedido, pago,getPedidosUsuario } from '../controllers/pedidos.controllers.js';
 
 const router=Router();
 
@@ -25,6 +25,7 @@ router.put("/usuarios/:id",validacion, updateUsuario);
 router.delete("/usuarios/:id", delUsuario);
 router.get("/correos", correosUsuarios);
 router.post("/verify-code", verifyAccount);
+router.post("/confirmar", confirmarPedido);
 
 /**
  * Endpoints para los productos
@@ -48,6 +49,8 @@ router.post("/comentarios", addComentario)
 /**
  * Endpoints para los pedidos
  */
+router.get("/pedidos/:id", getPedidosUsuario)
+router.post("/pedidos", addPedido)
 router.post("/crear-sesion-pago", pago)
 
 export default router; //exportamos

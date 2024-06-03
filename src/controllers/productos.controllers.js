@@ -11,7 +11,6 @@ export const getProductos=async(req, res)=>{
         const database = await conexionDB();
         const collection = database.collection("productos"); 
         const result = await collection.find({}).toArray();
-        console.log(result);
         res.status(200).json(result); 
     } catch (error) {
         res.status(500).json({

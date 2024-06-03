@@ -134,39 +134,55 @@ export const addUsuario=async(req, res)=>{
 };
 
 export const updateUsuario = async (req, res) => {
+    console.log("Request Body:", req.body);
     try {
-        const { id, nombre, correo, contraseña, direccion, telefono } = req.body;
+        const { _id, nombre, correo, direccion, telefono } = req.body;
         const database = await conexionDB();
         const collection = database.collection("usuarios");
 
-        if (!ObjectId.isValid(id)) {
+        if (!ObjectId.isValid(_id)) {
+            console.log("Invalid ID:", _id);
             return res.status(400).json({ message: "ID de usuario no válido" });
         }
 
-        let hashedPassword;
-        if (contraseña) {
-            hashedPassword = await bcrypt.hash(contraseña, 10);
-        }
+        const userId = new ObjectId(_id);
 
-        const result = await collection.updateOne(
-            { _id: new ObjectId(id) },
-            {
-                $set: {
-                    nombre: nombre,
-                    correo: correo,
-                    contraseña: hashedPassword,
-                    direccion: direccion,
-                    telefono: telefono
-                }
-            }
-        );
-
-        if (result.modifiedCount === 0) {
+        // Verificar si el documento existe antes de actualizar
+        const existingUser = await collection.findOne({ _id: userId });
+        if (!existingUser) {
+            console.log("Usuario no encontrado con ID:", _id);
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
 
-        res.status(200).json({ id: id });
+        console.log("Usuario encontrado:", existingUser);
+
+        // Verificar si los valores a actualizar son diferentes
+        const updateFields = {};
+        if (existingUser.nombre !== nombre) updateFields.nombre = nombre;
+        if (existingUser.correo !== correo) updateFields.correo = correo;
+        if (existingUser.direccion !== direccion) updateFields.direccion = direccion;
+        if (existingUser.telefono !== telefono) updateFields.telefono = telefono;
+
+        if (Object.keys(updateFields).length === 0) {
+            console.log("No hay cambios para actualizar");
+            return res.status(200).json({ message: "No se realizaron cambios porque los valores son los mismos" });
+        }
+
+        const result = await collection.updateOne(
+            { _id: userId },
+            { $set: updateFields }
+        );
+        console.log("hola4");
+
+        if (result.modifiedCount === 0) {
+            console.log("No se modificó ningún documento");
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+
+        console.log("hola5");
+        res.status(200).json({ id: _id });
     } catch (error) {
+        console.error("Error en el servidor:", error);
         res.status(500).json({
             message: "Error en el servidor"
         });
@@ -211,3 +227,39 @@ export const verifyAccount=async(req, res)=>{
         console.error('Error al enviar el correo electrónico de verificación:', error);
       }
 }
+
+export const confirmarPedido=async (req, res) => {
+    const { orden, email } = req.body;
+    try {
+      const productosHtml = orden.productos.map(producto => `
+        <li>
+          <p>Nombre: ${producto.nombre}</p>
+          <p>Descripción: ${producto.descripcion}</p>
+          <p>Cantidad: ${producto.cantidad}</p>
+          <p>Precio unitario: ${producto.precio_unitario}€</p>
+          <p>Total: ${producto.total}€</p>
+        </li>
+      `).join('');
+  
+      const mailOptions = {
+        from: 'lacajacaballero@gmail.com',
+        to: email,
+        subject: 'Confirmación de Pedido',
+        html: `
+          <h1>Tu pedido se ha realizado correctamente</h1>
+          <p>Detalles del pedido:</p>
+          <ul>
+            ${productosHtml}
+          </ul>
+          <p>Total del pedido: ${orden.productos.reduce((acc, prod) => acc + prod.total, 0)}€</p>
+        `
+      };
+  
+      await transporter.sendMail(mailOptions);
+      console.log('Correo electrónico de confirmación enviado correctamente');
+      res.status(200).send({ message: 'Correo de confirmación enviado' });
+    } catch (error) {
+      console.error('Error al enviar el correo electrónico de confirmación:', error);
+      res.status(500).send({ message: 'Error al enviar el correo electrónico de confirmación' });
+    }
+  };
