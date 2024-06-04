@@ -61,3 +61,29 @@ export const addComentario=async(req, res)=>{
         })
     }
 };
+
+export const deleteComentario = async (req, res) => {
+    try {
+        console.log(req.params);    
+        const { id } = req.params;
+        const database = await conexionDB();
+        const collection = database.collection("comentarios");
+        
+        const result = await collection.deleteOne({
+            _id: new ObjectId(id)
+        });
+
+        if (result.deletedCount === 1) {
+            console.log("Comentario eliminado");
+            res.status(200).json({ message: "Comentario eliminado" });
+        } else {
+            console.log("No se encontró el comentario");
+            res.status(404).json({ message: "Comentario no encontrado" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Error en el servidor"
+        });
+    }
+};
