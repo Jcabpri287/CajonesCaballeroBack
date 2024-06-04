@@ -86,4 +86,60 @@ export const getPedidosUsuario= async (req, res) => {
   }
 }
 
+export const getPedidos= async (req, res) => {
+  try {
+    const database = await conexionDB();
+    const collection = database.collection("pedidos");
+    const pedidosUsuario = await collection.find({  }).toArray();
 
+    res.status(200).json(pedidosUsuario); 
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los pedidos del usuario' });
+    throw error;
+  }
+}
+
+export const deletePedido = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const database = await conexionDB();
+    const collection = database.collection("pedidos");
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 1) {
+      res.status(200).json({ message: "Pedido eliminado" });
+    } else {
+      res.status(404).json({ message: "Pedido no encontrado" });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el pedido:', error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+};
+
+export const updatePedido = async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+
+  if (!estado) {
+    return res.status(400).json({ message: "El estado es requerido" });
+  }
+
+  try {
+    const database = await conexionDB();
+    const collection = database.collection("pedidos");
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { estado: estado } }
+    );
+
+    if (result.matchedCount === 1) {
+      res.status(200).json({ message: "Estado del pedido actualizado" });
+    } else {
+      res.status(404).json({ message: "Pedido no encontrado" });
+    }
+  } catch (error) {
+    console.error('Error al actualizar el pedido:', error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+};
